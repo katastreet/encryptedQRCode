@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Encrypted QR Code App</string>
+    <string name="home_screen_hint">FIRST TIME USING THE APP?</string>
+    <string name="username_hint">Enter your Username</string>
+</resources>
