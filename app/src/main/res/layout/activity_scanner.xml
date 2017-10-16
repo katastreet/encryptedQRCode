@@ -26,6 +26,7 @@
         android:layout_below="@id/scan_button"
         android:text="Data not scanned"
         android:textSize="20dp"
+        android:textIsSelectable="true"
         android:id="@+id/result"/>
 
 </RelativeLayout>
