@@ -45,6 +45,7 @@ import java.util.Map;
 
 import javax.crypto.SecretKey;
 
+import static android.graphics.Color.BLACK;
 import static android.graphics.Color.WHITE;
 
 public class GeneratorActivity extends AppCompatActivity {
@@ -73,9 +74,13 @@ public class GeneratorActivity extends AppCompatActivity {
         publicKey = (EditText) findViewById(R.id.publicKey);
         selectOverlayIcon = (ImageButton) findViewById(R.id.overlay_icon);
 
+
         selectOverlayIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                //image selection intent for overlay icon
+
                 Intent intent = new Intent();
                 intent.setType("image/*");
                 intent.setAction(Intent.ACTION_GET_CONTENT);
@@ -83,9 +88,13 @@ public class GeneratorActivity extends AppCompatActivity {
             }
         });
 
+
+
+
         generateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //parameter to check the validity or presence of public key
                 noPubKey = 0;
 
                 String message = generatorText.getText().toString().trim();
@@ -104,6 +113,8 @@ public class GeneratorActivity extends AppCompatActivity {
                         String publicKey = preferenceManager.pref.getString(PreferenceManager.PUBLIC_KEY, "error");
 
                         try {
+                            //the public key is valid only if the try statement executes properly
+
                             PublicKey publicKeySpec = ECCipher.genPublicKeyFromString(pubKey);
                             message = new String(Base64.encode(ecCipher.encrypt(publicKeySpec, message)));
                             noPubKey = 1;
@@ -116,7 +127,7 @@ public class GeneratorActivity extends AppCompatActivity {
                     else{
                         Toast.makeText(GeneratorActivity.this, "empty pub key", Toast.LENGTH_SHORT).show();
                     }
-                    MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
+
 
                     String finalMessage ="";
                     if(noPubKey != 0){
@@ -127,30 +138,26 @@ public class GeneratorActivity extends AppCompatActivity {
                     }
 
 
+                    MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
+
+
                     //see if there is overlay icon
                     if(overlayIconUri != null){
+                        // hintmap provides error correction
                         Map<EncodeHintType, ErrorCorrectionLevel> hintMap =new HashMap<EncodeHintType, ErrorCorrectionLevel>();
                         hintMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);
 
 
                         BitMatrix bitMatrix = multiFormatWriter.encode(finalMessage, BarcodeFormat.QR_CODE,300,300,hintMap);
 
-                        // Load QR image
+                        int[] pixels = BitmapUtils.getPixelsFromBitMatrix(bitMatrix);
+
                         int width = bitMatrix.getWidth();
                         int height = bitMatrix.getHeight();
-                        int[] pixels = new int[width * height];
-                        // All are 0, or black, by default
-                        for (int y = 0; y < height; y++) {
-                            int offset = y * width;
-                            for (int x = 0; x < width; x++) {
-                                //pixels[offset + x] = matrix.get(x, y) ? BLACK : WHITE;
-                                pixels[offset + x] = bitMatrix.get(x, y) ?
-                                        ResourcesCompat.getColor(getResources(),R.color.black,null) :WHITE;
-                            }
-                        }
 
                         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
                         bitmap.setPixels(pixels, 0, width, 0, 0, width, height);
+
                         //setting bitmap to image view
 
                         Bitmap overlay =  MediaStore.Images.Media.getBitmap(GeneratorActivity.this.getContentResolver(), overlayIconUri);
@@ -158,10 +165,11 @@ public class GeneratorActivity extends AppCompatActivity {
                         overlay = Bitmap.createScaledBitmap(overlay, 50,50,true);
 
 
-                        qrImageView.setImageBitmap(mergeBitmaps(overlay,bitmap));
+                        qrImageView.setImageBitmap(BitmapUtils.mergeBitmaps(overlay,bitmap));
 
                     }
                     else {
+                        //no error correction needed
                         BitMatrix bitMatrix = multiFormatWriter.encode(finalMessage, BarcodeFormat.QR_CODE,200,200);
 
                         BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
@@ -183,27 +191,14 @@ public class GeneratorActivity extends AppCompatActivity {
         qrImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                qrImageView.setDrawingCacheEnabled(true);
 
-                Bitmap bitmap = qrImageView.getDrawingCache();
-                File root = Environment.getExternalStorageDirectory();
-                File cachePath = new File(root.getAbsolutePath() + "/DCIM/Camera/image.jpg");
-                verifyStoragePermissions(GeneratorActivity.this);
-                try {
-                    cachePath.createNewFile();
-                    FileOutputStream ostream = new FileOutputStream(cachePath);
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, ostream);
-                    ostream.close();
-                } catch (Exception e) {
-//                    Toast.makeText(GeneratorActivity.this,"permission error", Toast.LENGTH_SHORT).show();
-                    e.printStackTrace();
-                }
+                //API 24 and above sometimes have write permissions problem
+                Permissions.verifyStoragePermissions(GeneratorActivity.this);
 
 
-                Intent share = new Intent(Intent.ACTION_SEND);
-                share.setType("image/*");
-                share.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(cachePath));
-                startActivity(Intent.createChooser(share, "Share via"));
+                //share intent for qr image  view
+                shareImageView(qrImageView);
+
             }
         });
 
@@ -211,6 +206,7 @@ public class GeneratorActivity extends AppCompatActivity {
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // overlay icon selection intent
         if (resultCode == RESULT_OK) {
             if (requestCode == SELECT_OVERLAY_ICON) {
                 // Get the url from data
@@ -219,51 +215,34 @@ public class GeneratorActivity extends AppCompatActivity {
         }
     }
 
-    public Bitmap mergeBitmaps(Bitmap overlay, Bitmap bitmap) {
 
-        int height = bitmap.getHeight();
-        int width = bitmap.getWidth();
+    //intent to share image view
+    public void shareImageView(ImageView imageView){
+        imageView.setDrawingCacheEnabled(true);
 
-        Bitmap combined = Bitmap.createBitmap(width, height, bitmap.getConfig());
-        Canvas canvas = new Canvas(combined);
-        int canvasWidth = canvas.getWidth();
-        int canvasHeight = canvas.getHeight();
-
-        canvas.drawBitmap(bitmap, new Matrix(), null);
-
-        int centreX = (canvasWidth  - overlay.getWidth()) /2;
-        int centreY = (canvasHeight - overlay.getHeight()) /2 ;
-        canvas.drawBitmap(overlay, centreX, centreY, null);
-
-        return combined;
-    }
+        Bitmap bitmap = imageView.getDrawingCache();
+        File root = Environment.getExternalStorageDirectory();
+        File cachePath = new File(root.getAbsolutePath() + "/DCIM/Camera/image.jpg");
 
 
 
-    private static final int REQUEST_EXTERNAL_STORAGE = 1;
-    private static String[] PERMISSIONS_STORAGE = {
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-    };
 
-    /**
-     * Checks if the app has permission to write to device storage
-     *
-     * If the app does not has permission then the user will be prompted to grant permissions
-     *
-     * @param activity
-     */
-    public static void verifyStoragePermissions(Activity activity) {
-        // Check if we have write permission
-        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-
-        if (permission != PackageManager.PERMISSION_GRANTED) {
-            // We don't have permission so prompt the user
-            ActivityCompat.requestPermissions(
-                    activity,
-                    PERMISSIONS_STORAGE,
-                    REQUEST_EXTERNAL_STORAGE
-            );
+        try {
+            cachePath.createNewFile();
+            FileOutputStream ostream = new FileOutputStream(cachePath);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, ostream);
+            ostream.close();
+        } catch (Exception e) {
+//                    Toast.makeText(GeneratorActivity.this,"permission error", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
         }
+
+
+        Intent share = new Intent(Intent.ACTION_SEND);
+        share.setType("image/*");
+        share.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(cachePath));
+        startActivity(Intent.createChooser(share, "Share via"));
     }
+
+
 }

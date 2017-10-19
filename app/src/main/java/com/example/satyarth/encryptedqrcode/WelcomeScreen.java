@@ -32,15 +32,20 @@ public class WelcomeScreen extends AppCompatActivity {
         setContentView(R.layout.activity_welcome_screen);
 
         username = (EditText)findViewById(R.id.username);
+
+        // if first time logged in generates key
         generateButtonListener();
 
     }
+
 
     private void launchHomeScreen(){
         Intent generatorIntent = new Intent(WelcomeScreen.this, MainUi.class);
         startActivity(generatorIntent);
         finish();
     }
+
+
     private void generateButtonListener() {
         loginButton = (Button) findViewById(R.id.login_btn);
         loginButton.setOnClickListener(new View.OnClickListener() {

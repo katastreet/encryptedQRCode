@@ -17,11 +17,14 @@ public class MainUi extends AppCompatActivity {
         setContentView(R.layout.activity_main_ui);
 
         scannerButtonListener();
+
         generateButtonListener();
+
         settingsButtonListener();
 
 
     }
+
 
     private void scannerButtonListener() {
         scanButton = (Button) findViewById(R.id.scan_qr);
@@ -35,6 +38,7 @@ public class MainUi extends AppCompatActivity {
         });
     }
 
+
     private void generateButtonListener() {
         generateButton = (Button) findViewById(R.id.generate_qr);
         generateButton.setOnClickListener(new View.OnClickListener() {
@@ -47,6 +51,7 @@ public class MainUi extends AppCompatActivity {
         });
 
     }
+
 
     private void settingsButtonListener() {
         settingsButton = (Button) findViewById(R.id.settings);

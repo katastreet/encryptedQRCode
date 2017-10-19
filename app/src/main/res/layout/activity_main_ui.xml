@@ -12,7 +12,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:text="Scan QR"
-        android:id="@+id/scan_qr" />
+        android:id="@+id/scan_qr"
+        />
     <Button
         android:layout_width="200dp"
         android:layout_height="wrap_content"
@@ -24,6 +25,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:text="Settings"
-        android:id="@+id/settings"/>
+        android:id="@+id/settings"
+        />
 
 </LinearLayout>

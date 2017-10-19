@@ -36,14 +36,9 @@ public class ScannerActivity extends AppCompatActivity {
         scanBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                resultTextView.setText("Data Not scanned");
-                IntentIntegrator qrCodeIntegrator = new IntentIntegrator(activity);
-                qrCodeIntegrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES);
-                qrCodeIntegrator.setPrompt("Scan a QR Code");
-                qrCodeIntegrator.setCameraId(0); // use specific camera of the device
-                qrCodeIntegrator.setBeepEnabled(false);
-                qrCodeIntegrator.setBarcodeImageEnabled(false);
-                qrCodeIntegrator.initiateScan();
+                //start scanning action
+                scan(activity);
+
             }
         });
 
@@ -57,9 +52,14 @@ public class ScannerActivity extends AppCompatActivity {
                 Toast.makeText(this, "Scanning Cancelled", Toast.LENGTH_LONG).show();
             }
             else if(!qrScanResult.getContents().contains("qr://")){
+
+                // adaptation to normal qr app
+
                 resultTextView.setText(qrScanResult.getContents());
             }
             else{
+                //the qr generated with this app has qr:// prefix
+
                 String result = qrScanResult.getContents();
                     result = result.substring(5);
                     byte[] decodedResult = Base64.decode(result.getBytes());
@@ -84,5 +84,18 @@ public class ScannerActivity extends AppCompatActivity {
         else {
             super.onActivityResult(requestCode, resultCode, data);
         }
+    }
+
+
+    //scanner qr intent
+    public void scan(Activity activity){
+        resultTextView.setText("Data Not scanned");
+        IntentIntegrator qrCodeIntegrator = new IntentIntegrator(activity);
+        qrCodeIntegrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES);
+        qrCodeIntegrator.setPrompt("Scan a QR Code");
+        qrCodeIntegrator.setCameraId(0); // use specific camera of the device
+        qrCodeIntegrator.setBeepEnabled(false);
+        qrCodeIntegrator.setBarcodeImageEnabled(false);
+        qrCodeIntegrator.initiateScan();
     }
 }
