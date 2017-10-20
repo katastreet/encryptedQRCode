@@ -2,4 +2,5 @@
     <string name="app_name">Encrypted QR Code App</string>
     <string name="home_screen_hint">FIRST TIME USING THE APP?</string>
     <string name="username_hint">Enter your Username</string>
+    <string name="home_screen_hint_support">please connect to internet to register</string>
 </resources>

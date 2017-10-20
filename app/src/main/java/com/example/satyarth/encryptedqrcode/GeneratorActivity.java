@@ -7,10 +7,12 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -18,6 +20,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -47,6 +51,7 @@ import javax.crypto.SecretKey;
 
 import static android.graphics.Color.BLACK;
 import static android.graphics.Color.WHITE;
+import static android.graphics.Color.red;
 
 public class GeneratorActivity extends AppCompatActivity {
     private static final String TAG = "permission";
@@ -54,9 +59,10 @@ public class GeneratorActivity extends AppCompatActivity {
     private EditText generatorText;
     private Button generateButton;
     private ImageView qrImageView;
-    private EditText publicKey;
+    private EditText username;
     private ImageButton selectOverlayIcon;
     public int noPubKey = 0;
+    public String pubKey = "";
 
     private static final int SELECT_OVERLAY_ICON = 100;
     private Uri overlayIconUri;
@@ -71,7 +77,7 @@ public class GeneratorActivity extends AppCompatActivity {
         generatorText = (EditText) findViewById(R.id.inputText);
         generateButton = (Button) findViewById(R.id.generate);
         qrImageView = (ImageView) findViewById(R.id.qr_image);
-        publicKey = (EditText) findViewById(R.id.publicKey);
+        username = (EditText) findViewById(R.id.username);
         selectOverlayIcon = (ImageButton) findViewById(R.id.overlay_icon);
 
 
@@ -88,6 +94,27 @@ public class GeneratorActivity extends AppCompatActivity {
             }
         });
 
+        username.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                String uname = username.getText().toString();
+                AsyncTaskRunner runner = new AsyncTaskRunner();
+                runner.execute(uname);
+            }
+
+
+        });
+
 
 
 
@@ -98,7 +125,6 @@ public class GeneratorActivity extends AppCompatActivity {
                 noPubKey = 0;
 
                 String message = generatorText.getText().toString().trim();
-                String pubKey=publicKey.getText().toString();
 
 
 
@@ -242,6 +268,39 @@ public class GeneratorActivity extends AppCompatActivity {
         share.setType("image/*");
         share.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(cachePath));
         startActivity(Intent.createChooser(share, "Share via"));
+    }
+
+    private class AsyncTaskRunner extends AsyncTask<String, String, String> {
+        private Exception asyncException;
+
+        @Override
+        protected String doInBackground(String... strings) {
+            APICommunication apiCommunication = new APICommunication();
+
+            try {
+                String output = apiCommunication.searchUsername(strings[0]);
+                return output;
+            } catch (Exception e) {
+                System.out.println("unable to fetch");
+                e.printStackTrace();
+                asyncException = e;
+            }
+            return "fail";
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            if(asyncException != null){
+                return;
+            }
+            pubKey = s;
+            if(pubKey.equals("")){
+                username.setBackgroundColor(Color.rgb(255,173,173));
+            }
+            else{
+                username.setBackgroundColor(Color.rgb(173,247,204));
+            }
+        }
     }
 
 

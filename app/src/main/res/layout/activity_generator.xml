@@ -33,13 +33,13 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/inputText"
         android:layout_centerHorizontal="true"
-        android:hint="public key(optional)"
-        android:id="@+id/publicKey"
+        android:hint="username(optional)"
+        android:id="@+id/username"
         android:textSize="20dp"/>
     <Button
         android:layout_width="100dp"
         android:layout_height="wrap_content"
-        android:layout_below="@id/publicKey"
+        android:layout_below="@id/username"
         android:text="Generate"
         android:layout_centerHorizontal="true"
         android:id="@+id/generate"/>
