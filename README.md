@@ -1,7 +1,7 @@
 # encryptedQRCode
 android qr code scanner implemented with elliptic curve encryption
 
-the retful api is integrated with the app
+the RESTful api is integrated with the app
 
 change addUrl and fetchUrl as per the host
 
